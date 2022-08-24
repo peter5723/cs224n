@@ -1,0 +1,76 @@
+\documentclass[UTF8]{ctexart}
+\title{a2 written part}
+\author{peter}
+\date{\today}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\begin{document}
+\maketitle
+\noindent
+(a) notice that
+\begin{equation}
+	{\hat{y}}_x = \frac{\exp{{(u^T_xv_c)}}}{\sum\limits_{w\in\text{vocab}}\exp{(u^T_wv_c)}}
+	\end{equation}
+then
+\begin{align}
+J_{\text{naive-softmax}} =& -\log P(O=o, C=c)\\
+=&-\log\frac{\exp{{(u^T_ov_c)}}}{\sum\limits_{w\in\text{vocab}}\exp{(u^T_wv_c)}}\\
+=&-\log\hat{y}_o\\
+=&-\sum\limits_{w\in\text{vocab}}y_w\log{\hat{y}_w}
+\end{align}
+(b)
+\begin{equation}
+    \frac{\partial{J}}{\partial{v_c}} = U(\hat{y}-y)
+\end{equation}
+(c)(d)
+\begin{equation}
+    \frac{\partial{J}}{\partial{U}} = (\hat{y}-y)v_c
+\end{equation}
+(e)
+\begin{equation}
+    f'(x) = \mathbf{1}(x>0) 
+\end{equation}
+(f)
+\begin{equation}
+    \sigma '(x) = \sigma (x)(1-\sigma (x))
+\end{equation}
+(g)
+\begin{equation}
+    J = -\log(\sigma(u^T_o v_c))
+    - \sum\limits_{s=1}^K \log (\sigma (-u^T_{w_s}v_c))
+\end{equation}
+\begin{equation}
+    \frac{\partial{J}}{\partial{v_c}} = 
+    - (1-\sigma(u_o^T v_c))u_o +
+    \sum\limits_{s=1}^K (1-\sigma(-u_s^T v_c))u_s 
+\end{equation}
+\begin{equation}
+    \frac{\partial{J}}{\partial{u_o}} = 
+    (\sigma(u_o^T v_c)-1)v_c
+\end{equation}
+\begin{equation}
+    \frac{\partial{J}}{\partial{u_{w_s}}}
+    =-(\sigma(u^T_{w_s} v_c)-1)v_c
+\end{equation}
+(h)
+\begin{equation}
+    \frac{\partial{J}}{\partial{u_{w_s}}}
+    = \sum\limits_{x=1}^k \mathbf{1}(x=w_s)(1-\sigma(-u^T_{w_s} v_c))v_c
+\end{equation}
+(i)
+\begin{equation}
+    J = \sum_{-m\le j \le m,j\neq0}J(v_c,w_{t+j},U)
+\end{equation}
+\begin{equation}
+    \frac{\partial{J}}{\partial{U}} = \sum_{-m\le j \le m,j\neq0}
+    \frac{\partial{J(v_c, w_{t+j}, U)}}{\partial{U}}
+\end{equation}
+\begin{equation}
+    \frac{\partial{J}}{\partial{v_c}} = \sum_{-m\le j \le m,j\neq0}
+    \frac{\partial{J(v_c, w_{t+j}, U)}}{\partial{v_c}}
+\end{equation}
+\begin{equation}
+    \frac{\partial{J}}{\partial{v_w}} = 0
+\end{equation}
+\end{document}
+
