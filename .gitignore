@@ -5,3 +5,5 @@
 *.npy
 *.pickle
 __pycache__/
+data/
+results/
