@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#总而言之，现在的答案完美符合我的数学推导了
 import argparse
 import numpy as np
 import random
@@ -18,7 +18,7 @@ def sigmoid(x):
     """
 
     ### YOUR CODE HERE (~1 Line)
-    s = 1 / (1 + np.exp(-x))
+    s = 1/(1+np.exp(-x))
     ### END YOUR CODE
 
     return s
@@ -60,22 +60,22 @@ def naiveSoftmaxLossAndGradient(
     """
 
     ### YOUR CODE HERE (~6-8 Lines)
+
+
+    y_hat = softmax(outsideVectors@centerWordVec)
+    loss = -np.log(y_hat[outsideWordIdx])
+
+    y=np.zeros_like(y_hat)
+    y[outsideWordIdx] = 1
+    
+
+    gradCenterVec = outsideVectors.T@(y_hat-y).T
+    gradOutsideVecs = (centerWordVec.reshape(-1,1)@(y_hat-y).reshape(1,-1)).T
+    #这道题坑的地方，编程的时候求的是对U的转置的偏导数,因为向量是横着储存的
     ### Please use the provided softmax function (imported earlier in this file)
     ### This numerically stable implementation helps you avoid issues pertaining
     ### to integer overflow. 
-    #ps:向量默认是行向量放置
-    score = outsideVectors @ centerWordVec
-    y_head = softmax(score)
-    y = np.zeros_like(y_head)
-    y[outsideWordIdx] = 1
-    loss = -np.log(y_head[outsideWordIdx])
-    gradCenterVec = outsideVectors.T @ (y_head - y).T
-    #如果一个向量是一维的,对numpy来说转不转无所谓.
-    y0 = (y_head - y).reshape(y.shape[0], 1)
-    vc = centerWordVec.reshape(1, centerWordVec.shape[0])
-    gradOutsideVecs = y0@vc
 
-    
     ### END YOUR CODE
 
     return loss, gradCenterVec, gradOutsideVecs
@@ -118,20 +118,27 @@ def negSamplingLossAndGradient(
     # wish to match the autograder and receive points!
     negSampleWordIndices = getNegativeSamples(outsideWordIdx, dataset, K)
     indices = [outsideWordIdx] + negSampleWordIndices
+    #numpy矩阵和向量相乘会自动调整向量，所以不用担心
     ### YOUR CODE HERE (~10 Lines)
-    #注意看题目, indice中第一个是uo的下标
-    u_temp = -outsideVectors[indices]
-    u_temp[0,:] *= -1
-    z = u_temp @ centerWordVec.T
-    y_hat = 1 - sigmoid(z)
-    y_hat[0] *= -1
-    gradCenterVec = (outsideVectors[indices].T @ y_hat).T
-    loss = -np.sum(np.log(sigmoid(u_temp@centerWordVec)))
+    ##
+    all_sample = -outsideVectors[indices]
+    all_sample[0,:] *=-1
+    
+    tmp = sigmoid(all_sample@centerWordVec)-1
+    loss = -np.sum(np.log((tmp)+1))
+
+    
+   
+    gradCenterVec = tmp@all_sample
+    #由于1维向量是横着保存的， 电脑中存储向量是默认横着的 
+
     gradOutsideVecs = np.zeros_like(outsideVectors)
-    gradOutsideVecs[outsideWordIdx] += y_hat[0]*centerWordVec
-    for i, idx in enumerate(indices[1:]):
-        gradOutsideVecs[idx] += y_hat[i+1]*centerWordVec
-        #只要算negative sample中的梯度就可以了
+    gradOutsideVecs[outsideWordIdx] += tmp[0]*centerWordVec
+    for idx, i in enumerate(indices[1:]):
+        gradOutsideVecs[i,:] += -tmp[idx+1]*centerWordVec
+    
+
+
     ### Please use your implementation of sigmoid in here.
 
     ### END YOUR CODE
@@ -179,20 +186,21 @@ def skipgram(currentCenterWord, windowSize, outsideWords, word2Ind,
     gradOutsideVectors = np.zeros(outsideVectors.shape)
 
     ### YOUR CODE HERE (~8 Lines)
-    currentCenterWordidx = word2Ind[currentCenterWord]
-    currentCenterWordvec = centerWordVectors[currentCenterWordidx]
+    currentCenterWordIndex = word2Ind[currentCenterWord]
+    centerWordVec = centerWordVectors[currentCenterWordIndex]
     for word in outsideWords:
-        #实际上,对于word2vec来说, 只要知道是outsideWords(上下文)即可, 具体距离是无关的
-        loss_temp, gradCenterVec_temp, gradOutsideVecs_temp = word2vecLossAndGradient(
-                currentCenterWordvec,
-                word2Ind[word],
-                outsideVectors,
-                dataset
+        wordIndex = word2Ind[word]
+        tmploss, tmpgradCenterVecs, tmpgradOutsideVectors = word2vecLossAndGradient(
+            centerWordVec, 
+            wordIndex,
+            outsideVectors,
+            dataset
         )
-        loss += loss_temp
-        #注意gradCenterVecs的形状
-        gradCenterVecs[currentCenterWordidx] += gradCenterVec_temp
-        gradOutsideVectors += gradOutsideVecs_temp
+        loss += tmploss
+        gradCenterVecs[currentCenterWordIndex] += tmpgradCenterVecs #注意gradCenterVecs的形状
+        gradOutsideVectors += tmpgradOutsideVectors
+
+
     ### END YOUR CODE
     
     return loss, gradCenterVecs, gradOutsideVectors
